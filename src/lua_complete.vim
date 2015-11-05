@@ -18,10 +18,28 @@ if exists('g:lua_func_completer')
 	finish
 endif
 
+let s:enable_md5 = 1
 let g:lua_func_completer = 1
-let dirname = substitute(getcwd(), '.*/\(.*\)', '\1', '')
+let tagname = substitute(getcwd(), '.*/\(.*\)', '\1', '')
+
+function! s:GetMd5(filepath)
+	let l:bin = 'md5sum'
+	let l:os = split(system('uname'))[0]
+	let cmd = ''
+	if l:os != 'Linux'
+		let l:bin = "md5"
+		let cmd = printf('echo %s | %s', a:filepath, l:bin)
+	else
+		let cmd = printf('echo %s | %s ', a:filepath, l:bin)
+	endif
+	return split(system(cmd))[0]
+endfunction
+
+if s:enable_md5 
+	let tagname = s:GetMd5(getcwd()) . "." . tagname
+endif
 let s:tagfiledir = $HOME . '/tmp/luatag/'
-let s:tagfilepath = s:tagfiledir . dirname . ".tag"
+let s:tagfilepath = s:tagfiledir . tagname . ".tag"
 
 function! s:FindFilesEx(dir, fileFilterList)
 	let l:files = []
