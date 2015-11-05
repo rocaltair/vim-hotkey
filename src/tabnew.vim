@@ -22,4 +22,17 @@ function! TagOpenFiles(...)
 	endfor
 endfunction
 
+function! TagOpenCurPath()
+	let allow = '[a-zA-Z_/\.]'
+	let path = matchstr(getline('.'), allow . '\+\%'.(col('.') + 1).'c'.allow.'\+')
+	let dirname = substitute(path, '^\(.*\)/.\+$', '\1', '')
+	if isdirectory(dirname) || dirname == path && path !~ '/$' && path !~ '^\s+$'
+		execute 'tabnew ' . path
+	else
+		echo 'path ''' . path . ''' not exists'
+	endif
+endfunction
+
+nmap <silent> tt :call TagOpenCurPath()<cr>
 command! -nargs=+ -complete=file T :call TagOpenFiles(<f-args>)
+
