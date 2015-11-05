@@ -1,11 +1,27 @@
 "
 " By Roc<rocaltair@gmail.com>
 "
+" install:
+" 	put this file under $HOME/.vim/ftplugin/ as lua.vim
+"
+" descript:
+"	parse all lua functions under current work dir(this may take a long time)
+"	and complete all functions by the parser
+" 
+" hotkeys:
+"	=ld : create tagfile($cwddirname.tag) in $HOME/tmp/luatag/
+"	<c-x><c-m> : auto complete
+"	<c-x><c-x> : close function info dir
+"
+
 if exists('g:lua_func_completer')
 	finish
 endif
 
 let g:lua_func_completer = 1
+let dirname = substitute(getcwd(), '.*/\(.*\)', '\1', '')
+let s:tagfiledir = $HOME . '/tmp/luatag/'
+let s:tagfilepath = s:tagfiledir . dirname . ".tag"
 
 function! s:FindFilesEx(dir, fileFilterList)
 	let l:files = []
@@ -70,13 +86,64 @@ function! LuaParse()
 	echo "LuaParse updated!"
 endfunction
 
+function! LuaParserDumpToFile()
+	let l:linelist = []
+	if !isdirectory(s:tagfiledir)
+		call mkdir(s:tagfiledir, 'p')
+	endif
+	let filepath = s:tagfilepath
+	if !exists("s:funcNames")
+		echoerr "s:funcNames not found, Parse first"
+		return 
+	endif
+	for [name, funclist] in items(s:funcNames)
+		for funcinfo in funclist
+			let line = printf('%s|%s|%s|%d', name, funcinfo.proto, funcinfo.fpath, funcinfo.lnum)
+			call add(l:linelist, line)
+		endfor
+	endfor
+	call writefile(l:linelist, filepath, "b")
+endfunction
+
+function! LuaParserDumpToFileEx()
+	if !exists("s:funcNames")
+		call LuaParse()
+	endif
+	call LuaParserDumpToFile()
+endfunction
+
+function! LuaParserLoadFromFile()
+	let filepath = s:tagfilepath
+	if !filereadable(filepath)
+		return 
+	endif
+	if !exists("s:funcNames")
+		let s:funcNames = {}
+	endif
+	for line in readfile(filepath)
+		let matchret = matchlist(line, '\([^|]*\)|\([^|]*\)|\([^|]*\)|\(.*\)')
+		if len(matchret) < 5 
+			echoerr 'line error ' . line
+			return 
+		endif
+		let fname = matchret[1]
+		let proto = matchret[2]
+		let path = matchret[3]
+		let lnum = matchret[4]
+		let item = {'fname': fname, 'fpath' : path, 'lnum' : lnum, 'proto' : proto}
+		let itemlist = get(s:funcNames, fname, [])
+		call add(itemlist, item)
+		let s:funcNames[l:fname] = itemlist
+	endfor
+endfunction
+
 function! LuaFuncComplete()
 	if !exists('s:funcNames')
 		call LuaParse()
 	endif
 	let line = line('.')
 	let col = col('.')
-	let word = matchstr(getline('.'), '\S\+\%'.col.'c')
+	let word = matchstr(getline('.'), '\w\+\%'.col.'c')
 	let matches = []
 	let matchlen = 0
 	let triggers = keys(s:funcNames)
@@ -84,9 +151,9 @@ function! LuaFuncComplete()
 		if word == '' || trigger =~ '^'.word
 			let comment = ''
 			for item in s:funcNames[trigger]
-				let comment = comment . "|" . item.proto . ":" . item.fpath . " +" . item.lnum
+				let comment = comment . item.proto . ":" . item.fpath . " +" . item.lnum . "\n"
 			endfor
-			let info = {"word":trigger, "abbr" : ":" . comment}
+			let info = {"word":trigger, "info" : comment}
 			call add(matches, info)
 			let len = len(word)
 			if len > matchlen
@@ -106,19 +173,9 @@ function! LuaFuncComplete()
 	return ''
 endfunction
 
-function! MyTest()
-	let l:matches = []
-	let list = ["kkk", "bbb", "cccc"]
-	for i in range(3)
-		for w in list
-			call add(l:matches, {"word" : w, "menu" : w . ":" . i})
-		endfor
-	endfor
-	call complete(col('.'), sort(l:matches))
-	return ''
-endfunction
-
-"ino <silent> <c-x><c-k> <c-r>=MyTest()<cr>
+nmap <silent> <c-x><c-x> :only<cr>
+imap <silent> <c-x><c-x> <Esc>:only<cr>a
 ino <silent> <c-x><c-m> <c-r>=LuaFuncComplete()<cr>
 nmap <silent> =lc :call LuaParse()<cr>
-
+nmap <silent> =ld :call LuaParserDumpToFileEx()<cr>
+call LuaParserLoadFromFile()
