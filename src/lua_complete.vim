@@ -104,6 +104,11 @@ function! LuaParse()
 	echo "LuaParse updated!"
 endfunction
 
+function! LuaParserReDump()
+	call LuaParse()
+	call LuaParserDumpToFile()
+endfunction
+
 function! LuaParserDumpToFile()
 	let l:linelist = []
 	if !isdirectory(s:tagfiledir)
@@ -194,6 +199,6 @@ endfunction
 nmap <silent> <c-x><c-x> :only<cr>
 imap <silent> <c-x><c-x> <Esc>:only<cr>a
 ino <silent> <c-x><c-m> <c-r>=LuaFuncComplete()<cr>
-nmap <silent> =lc :call LuaParse()<cr>
+nmap <silent> =lr :call LuaParserReDump()<cr>
 nmap <silent> =ld :call LuaParserDumpToFileEx()<cr>
 call LuaParserLoadFromFile()
