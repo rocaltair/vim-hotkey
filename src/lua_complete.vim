@@ -71,12 +71,9 @@ function! s:Process(files)
 		let l:num = 0
 		for line in readfile(f)
 			let l:num += 1
-			if line =~ '^function\s\+\w\+(.*)'
-				if line =~ 'local\s\+function'
-					continue
-				endif
-				let l:fname = substitute(line, '.*function\s\+\(\w\+\)(.*).*', '\1', '')
-				let l:proto = substitute(line, '.*function\s\+\(\w\+(.*)\).*', '\1', '')
+			if line =~ '^function\s\+[a-zA-Z0-9_\.]\+(.*)'
+				let l:fname = substitute(line, '.*function\s\+\([a-zA-Z0-9_\.]\+\)(.*).*', '\1', '')
+				let l:proto = substitute(line, '.*function\s\+\([a-zA-Z0-9_\.]\+(.*)\).*', '\1', '')
 				let item = {'fname': l:fname, 'fpath' : f, 'lnum' : l:num, 'proto' : l:proto}
 				let itemlist = get(l:funcNames, l:fname, [])
 				call add(itemlist, item)
@@ -166,7 +163,7 @@ function! LuaFuncComplete()
 	endif
 	let line = line('.')
 	let col = col('.')
-	let word = matchstr(getline('.'), '\w\+\%'.col.'c')
+	let word = matchstr(getline('.'), '[a-zA-Z0-9_\.]\+\%'.col.'c')
 	let matches = []
 	let matchlen = 0
 	let triggers = keys(s:funcNames)
