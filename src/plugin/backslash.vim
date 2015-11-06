@@ -1,4 +1,4 @@
-function! AddBackslash(first, last)
+function! s:AddBackslash(first, last)
 	let cur = a:first
 	let maxlen = 0
 	while cur <= a:last
@@ -20,7 +20,7 @@ function! AddBackslash(first, last)
 	endwhile
 endfunction
 
-function! RemoveBackslash(first, last)
+function! s:RemoveBackslash(first, last)
 	let cur = a:first
 	while cur <= a:last
 		let newline = substitute(getline(cur), '\s\+\\$', '', '')
@@ -29,7 +29,7 @@ function! RemoveBackslash(first, last)
 	endwhile
 endfunction
 
-function! Process(...) range
+function! BackslashProcess(...) range
 	let vtype = visualmode()
 	if vtype != 'V'
 		return 
@@ -37,11 +37,11 @@ function! Process(...) range
 	let cur = a:firstline
 	let hasBackslash = getline(cur) =~ '\\$'
 	if !hasBackslash
-		call AddBackslash(a:firstline, a:lastline)
+		call s:AddBackslash(a:firstline, a:lastline)
 	else
-		call RemoveBackslash(a:firstline, a:lastline)
+		call s:RemoveBackslash(a:firstline, a:lastline)
 	endif
 endfunction
 
-map <silent> \ :call Process()<cr>
+vmap <silent> \ :call BackslashProcess()<cr>
 
