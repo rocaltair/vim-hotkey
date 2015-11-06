@@ -1,3 +1,14 @@
+"
+" Author : Roc Altair<rocaltair@gmail.com>
+" 
+"
+let s:is_debug = 0
+
+if !s:is_debug &&( &filetype != 'lua' || exists('g:lua_comment_addon_enabled'))
+	finish
+endif
+let g:lua_comment_addon_enabled = 1
+
 function! s:Add(first, last)
 	let cur = a:first
 	while cur <= a:last

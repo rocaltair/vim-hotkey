@@ -1,3 +1,13 @@
+"
+" Author : Roc<rocaltair@gmail.com>
+"
+let s:is_debug = 0
+
+if !s:is_debug && exists('g:backslash_addon_enabled')
+	finish
+endif
+let g:backslash_addon_enabled = 1
+
 function! s:AddBackslash(first, last)
 	let cur = a:first
 	let maxlen = 0
