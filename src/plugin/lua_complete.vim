@@ -14,7 +14,7 @@
 "	<c-x><c-x> : close function info dir
 "
 
-if exists('g:lua_func_completer')
+if &filetype != 'lua' || exists('g:lua_func_completer')
 	finish
 endif
 
