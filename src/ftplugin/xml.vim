@@ -57,5 +57,5 @@ function! XmlGotoMatch()
 	endwhile
 endfunction
 
-command! Xml :set filetype=xml|:%s/></>\r</g|:normal gg=G<cr>
+command! Xml :set filetype=xml|:%s/>\s*</>\r</g|:normal gg=G<cr>
 map % :call XmlGotoMatch()<cr>
